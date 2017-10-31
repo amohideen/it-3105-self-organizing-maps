@@ -3,24 +3,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from DataReader import DataReader
+from Utilities import TSMUtils
 tensor = np.array
 
 
 def plot_tsm_points(locations: tensor, show_labels: bool=True):
-    fig, ax = plt.subplots(1)
+    plt.figure()
 
     labels = locations[:, 0]
     xs = locations[:, 1]
     ys = locations[:, 2]
-    ax.plot(xs, ys, "ro")
+    plt.plot(xs, ys, "ro")
     if show_labels:
         for i in range(len(locations)):
-            ax.annotate(str(int(labels[i])), xy=(xs[i], ys[i]))
-
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
+            plt.annotate(str(int(labels[i])), xy=(xs[i], ys[i]))
 
     plt.show()
 
 
-plot_tsm_points(DataReader.read_tsm_file(10))
+
+cities = DataReader.read_tsm_file(10)
+normalized = TSMUtils.normalize_coordinates(cities)
+plot_tsm_points(normalized)
+

@@ -15,8 +15,9 @@ class DataReader:
             return list(map(float, line.split(" ")))
 
         with open("data/%d.txt" % number) as file:
-            n_cities = int(file.readline().split(" : ")[-1])
+            n_cities = int(file.readline().split(": ")[-1])
             lines = file.readlines()[1:1+n_cities]
+            lines = list(map(lambda s: s.strip(), lines))
             lines = list(map(_process_line, lines))
             return tensor(lines)
 
