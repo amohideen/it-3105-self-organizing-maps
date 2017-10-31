@@ -3,28 +3,23 @@
 
 import numpy as np
 from typing import List
-from pprint import pprint
 np.set_printoptions(suppress=True)
+tensor = np.array
 
 
 class DataReader:
 
     @staticmethod
-    def _read_tsm_file(path: str) -> np.array:
+    def read_tsm_file(number: int) -> tensor:
         def _process_line(line: str) -> List:
             return list(map(float, line.split(" ")))
 
-        with open(path) as file:
-            lines = file.readlines()[1:]
+        with open("data/%d.txt" % number) as file:
+            n_cities = int(file.readline().split(" : ")[-1])
+            lines = file.readlines()[1:1+n_cities]
             lines = list(map(_process_line, lines))
-            return np.array(lines)
+            return tensor(lines)
 
-    @staticmethod
-    def read_sahara() -> np.array:
-        return DataReader._read_tsm_file("data/sahara.txt")
 
-    @staticmethod
-    def read_djibouti() -> np.array:
-        return DataReader._read_tsm_file("data/djibouti.txt")
 
 

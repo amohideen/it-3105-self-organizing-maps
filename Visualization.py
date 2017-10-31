@@ -3,9 +3,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from DataReader import DataReader
+tensor = np.array
 
 
-def plot_tsm_points(locations: np.array, show_labels: bool=True):
+def plot_tsm_points(locations: tensor, show_labels: bool=True):
     fig, ax = plt.subplots(1)
 
     labels = locations[:, 0]
@@ -21,3 +22,5 @@ def plot_tsm_points(locations: np.array, show_labels: bool=True):
 
     plt.show()
 
+
+plot_tsm_points(DataReader.read_tsm_file(10))
