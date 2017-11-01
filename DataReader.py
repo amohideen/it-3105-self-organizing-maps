@@ -3,7 +3,6 @@
 
 import numpy as np
 from typing import List
-np.set_printoptions(suppress=True)
 tensor = np.array
 
 
