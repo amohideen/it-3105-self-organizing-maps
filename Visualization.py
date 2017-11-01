@@ -21,8 +21,17 @@ def plot_tsm_points(locations: tensor, show_labels: bool=True):
     plt.show()
 
 
+def plot_cities_and_neurons(cities: tensor, neurons: tensor):
+    fig = plt.figure()
+    plt.ion()
+    x_cities = cities[:, 0]
+    y_cities = cities[:, 1]
 
-cities = DataReader.read_tsm_file(10)
-normalized = TSMUtils.normalize_coordinates(cities)
-plot_tsm_points(normalized)
+    x_neurons = neurons[:, 0]
+    y_neurons = neurons[:, 1]
 
+    plt.plot(x_cities, y_cities, "ro")
+    line, = plt.plot(x_neurons, y_neurons, "bo")
+
+    plt.show()
+    return line, fig
