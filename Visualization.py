@@ -23,6 +23,9 @@ def plot_tsm_points(locations: tensor, show_labels: bool=True):
 
 def plot_cities_and_neurons(cities: tensor, neurons: tensor):
     fig = plt.figure()
+    mng = plt.get_current_fig_manager()
+    mng.resize(*mng.window.maxsize())
+
     plt.ion()
     x_cities = cities[:, 0]
     y_cities = cities[:, 1]
@@ -31,7 +34,8 @@ def plot_cities_and_neurons(cities: tensor, neurons: tensor):
     y_neurons = neurons[:, 1]
 
     plt.plot(x_cities, y_cities, "ro")
-    line, = plt.plot(x_neurons, y_neurons, "bo")
+    line1, = plt.plot(x_neurons, y_neurons, ":b")
+    line2, = plt.plot([], [], "k", linewidth=2)
 
     plt.show()
-    return line, fig
+    return line1, line2, fig
