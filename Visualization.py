@@ -2,8 +2,6 @@
 # Created: 29.10.17 21:08
 import numpy as np
 import matplotlib.pyplot as plt
-from DataReader import DataReader
-from Utilities import TSMUtils
 tensor = np.array
 
 
