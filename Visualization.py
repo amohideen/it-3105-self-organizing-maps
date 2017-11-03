@@ -33,8 +33,8 @@ def plot_cities_and_neurons(cities: tensor, neurons: tensor):
     x_neurons = neurons[:, 0]
     y_neurons = neurons[:, 1]
 
+    line1, = plt.plot(x_neurons, y_neurons, ":w")
     plt.plot(x_cities, y_cities, "ro")
-    line1, = plt.plot(x_neurons, y_neurons, ":b")
     line2, = plt.plot([], [], "k", linewidth=2)
 
     plt.show()

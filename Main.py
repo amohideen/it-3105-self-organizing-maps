@@ -1,6 +1,7 @@
 # Project: IT_3105_Module_4
 # Created: 29.10.17 21:45
 import numpy as np
+from typing import Any
 import math
 from Utilities import Utils, TSMUtils
 from DataReader import DataReader
@@ -31,7 +32,7 @@ def update_plot(weights, line, fig):
     fig.canvas.draw()
 
 
-def create_solution(cases: tensor, neurons: tensor, line, fig):
+def create_solution(cases: tensor, originals: tensor, neurons: tensor, line: Any, fig: Any):
     solution_map = {}
     for i in range(len(cases)):
         winner = Utils.get_winning_neuron(cases[i], neurons)
@@ -43,25 +44,35 @@ def create_solution(cases: tensor, neurons: tensor, line, fig):
     for i in range(len(neurons)):
         if i in solution_map.keys():
             solution.extend(solution_map[i])
-    solution = np.array(list(map(lambda index: cases[index], solution)))
-    xs = solution[:, 0]
-    ys = solution[:, 1]
+    norm_solution = tensor(list(map(lambda index: cases[index], solution)))
+    xs = norm_solution[:, 0]
+    ys = norm_solution[:, 1]
     line.set_xdata(np.append(xs, xs[0]))
     line.set_ydata(np.append(ys, ys[0]))
     fig.canvas.draw()
+
+    # calculate length of the created solution
+    solution = tensor(list(map(lambda index: tensor(originals[index]), solution)))
+    coordinates = solution[:, 1:]
+    total = 0
+    for i in range(len(solution) - 1):
+        total += Utils.euclidian_distance(solution[i], solution[i+1])
+    total += Utils.euclidian_distance(solution[-1], solution[0])
+    print(total)
 
 
 
 def tsm_test():
     epochs = 500
-    cities = DataReader.read_tsm_file(7)
+    cities = DataReader.read_tsm_file(10)
+    originals = cities
     cities = TSMUtils.normalize_coordinates(cities)
 
     labels = cities[:, 0:1]
     city_cases = cities[:, 1:]
 
     n_features = 2
-    out_size = len(cities) * 2
+    out_size = len(cities) * 5
     init_learning_rate = 0.5
 
     weights = np.random.uniform(np.min(city_cases), np.max(city_cases), size=(out_size, n_features))
@@ -77,11 +88,11 @@ def tsm_test():
             winner = Utils.get_winning_neuron(case, weights)
 
             # radius = int(init_radius * exp_decay(i, time_const))
-            radius = int(init_radius * power_series(i, epochs))
-            # radius = int(init_radius * linear_decay(i+1))
+            # radius = int(init_radius * power_series(i, epochs))
+            radius = int(init_radius * linear_decay(i+1))
             # l_rate = init_learning_rate * exp_decay(i, time_const)
-            l_rate = init_learning_rate * power_series(i, epochs)
-            # l_rate = init_learning_rate * linear_decay(i+1)
+            # l_rate = init_learning_rate * power_series(i, epochs)
+            l_rate = init_learning_rate * linear_decay(i+1)
 
             Utils.update_weight_matrix(case, l_rate, winner, weights)
             # Update neighbours to the right
@@ -96,11 +107,12 @@ def tsm_test():
                     influence = math.exp(-(((winner - j) ** 2) / (2 * radius ** 2)))
                     Utils.update_weight_matrix(case, influence * l_rate, j % out_size, weights)
 
-        update_plot(weights, line1, fig)
+        # update_plot(weights, line1, fig)
+        create_solution(city_cases, originals, weights, line2, fig)
         if i % 100 == 0:
             print("Epoch %d/%d" % (i, epochs))
     print("DONE")
-    create_solution(city_cases, weights, line2, fig)
+    create_solution(city_cases, originals, weights, line2, fig)
 
 
 tsm_test()
