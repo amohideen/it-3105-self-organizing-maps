@@ -1,0 +1,3 @@
+MAP     NODES   L_RATE      RAD     DECAY       RESULT
+9	    5	    0.50        2	    linear  	1680.19
+1		5		0.50		2		linear		38608.61

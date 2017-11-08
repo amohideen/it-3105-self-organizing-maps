@@ -6,7 +6,7 @@ import math
 class Decay:
     @staticmethod
     def linear_decay(t: int) -> float:
-        return 1 / t
+        return 1 / (t+1)
 
     @staticmethod
     def exp_decay(t: int, time_const: float) -> float:

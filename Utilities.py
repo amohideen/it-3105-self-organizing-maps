@@ -29,3 +29,9 @@ class Utilities:
     def update_weight_matrix(case: tensor, l_rate: float, win_index: int, weight_matrix: tensor):
         j = win_index
         weight_matrix[j] = weight_matrix[j] + l_rate * (case - weight_matrix[j])
+
+    @staticmethod
+    def store_tsm_result(case: int, nodes: int, l_rate: float, radius: int, decay: str, result: float):
+        line = "%d\t\t%d\t\t%.2f\t\t%d\t\t%s\t\t%.2f\n" % (case, nodes, l_rate, radius, decay, result)
+        with open("tsm_results.txt", "a") as f:
+            f.write(line)

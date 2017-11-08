@@ -7,6 +7,7 @@ from Utilities import Utilities
 from Decay import Decay
 from DataReader import DataReader
 from Visualization import plot_cities_and_neurons
+from functools import partial
 from pprint import pprint
 np.set_printoptions(suppress=True)
 
@@ -47,13 +48,18 @@ def create_solution(cases: tensor, originals: tensor, neurons: tensor, line: Any
     for i in range(len(solution) - 1):
         total += Utilities.euclidian_distance(solution[i], solution[i+1])
     total += Utilities.euclidian_distance(solution[-1], solution[0])
-    print(total)
+    return total
 
 
+def tsm_test(k: int=10):
+    epochs = 400
+    tsm_case = 1
+    node_factor = 5
+    radius_divisor = 2
+    init_learning_rate = 0.5
+    decay = "linear"
 
-def tsm_test():
-    epochs = 500
-    cities = DataReader.read_tsm_file(9)
+    cities = DataReader.read_tsm_file(tsm_case)
     originals = cities
     cities = Utilities.normalize_coordinates(cities)
 
@@ -61,27 +67,31 @@ def tsm_test():
     city_cases = cities[:, 1:]
 
     n_features = 2
-    out_size = len(cities) * 5
-    init_learning_rate = 0.5
+    out_size = len(cities) * node_factor
 
     weights = np.random.uniform(np.min(city_cases), np.max(city_cases), size=(out_size, n_features))
 
-    init_radius = out_size / 2
+    init_radius = out_size / radius_divisor
 
     time_const = epochs / np.log(init_radius)
 
     line1, line2, fig = plot_cities_and_neurons(city_cases, weights)
 
+    if decay == "linear":
+        decay_f = Decay.linear_decay
+    elif decay == "exp":
+        decay_f = partial(Decay.exp_decay, time_const=time_const)
+    elif decay == "power":
+        decay_f = partial(Decay.power_series, epochs=epochs)
+    else:
+        assert False, "Invalid decay function"
+
     for i in range(epochs):
         for case in city_cases:
             winner = Utilities.get_winning_neuron(case, weights)
 
-            # radius = int(init_radius * exp_decay(i, time_const))
-            # radius = int(init_radius * power_series(i, epochs))
-            radius = int(init_radius * Decay.linear_decay(i+1))
-            # l_rate = init_learning_rate * exp_decay(i, time_const)
-            # l_rate = init_learning_rate * power_series(i, epochs)
-            l_rate = init_learning_rate * Decay.linear_decay(i+1)
+            radius = int(init_radius * decay_f(i))
+            l_rate = init_learning_rate * decay_f(i)
 
             Utilities.update_weight_matrix(case, l_rate, winner, weights)
             # Update neighbours to the right
@@ -95,13 +105,17 @@ def tsm_test():
                 if radius:
                     influence = math.exp(-(((winner - j) ** 2) / (2 * radius ** 2)))
                     Utilities.update_weight_matrix(case, influence * l_rate, j % out_size, weights)
-
-        # update_plot(weights, line1, fig)
-        create_solution(city_cases, originals, weights, line2, fig)
-        if i % 100 == 0:
+        if i % k == 0:
+            update_plot(weights, line1, fig)
+            create_solution(city_cases, originals, weights, line2, fig)
             print("Epoch %d/%d" % (i, epochs))
     print("DONE")
-    create_solution(city_cases, originals, weights, line2, fig)
+    Utilities.store_tsm_result(tsm_case,
+                               node_factor,
+                               init_learning_rate,
+                               radius_divisor,
+                               decay,
+                               create_solution(city_cases, originals, weights, line2, fig))
 
 
 tsm_test()
