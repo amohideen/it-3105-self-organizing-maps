@@ -1,0 +1,8 @@
+Cities : 4
+NODE_COORD_SECTION
+1 0 0
+2 0 400
+3 400 0
+3 400 400
+EOF
+

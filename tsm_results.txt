@@ -1,3 +1,15 @@
-MAP     NODES   L_RATE      RAD     DECAY       RESULT
-9	    5	    0.50        2	    linear  	1680.19
-1		5		0.50		2		linear		38608.61
+MAP     EPOCHS  NODES   L_RATE      RAD     DECAY       RESULT
+9	    400     5	    0.50        2	    linear  	1680.19
+11		400     5		0.50		2		linear		1600.01
+1		400     5		0.50		2		linear		38608.61
+1		400     1		0.50		2		linear		40622.58
+1		400     10		0.50		2		linear		36916.90
+6		400     5		0.10		2		linear		1126.50
+6		400     5		0.10		2		power		1066.26
+6		400     5		0.50		2		power		1167.33
+6		400     5		0.50		1		power		1116.66
+6		400     10		0.50		2		power		1104.84
+6		400     10		0.05		2		power		1128.92
+6		400     10		0.05		1		power		1175.92
+6       4000    10		0.05		2		power		1189.58
+6		400		6		0.05		2		power		1116.42

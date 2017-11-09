@@ -8,6 +8,7 @@ from Decay import Decay
 from DataReader import DataReader
 from Visualization import plot_cities_and_neurons
 from functools import partial
+np.random.seed(123)
 from pprint import pprint
 np.set_printoptions(suppress=True)
 
@@ -52,12 +53,12 @@ def create_solution(cases: tensor, originals: tensor, neurons: tensor, line: Any
 
 
 def tsm_test(k: int=10):
+    tsm_case = 6
     epochs = 400
-    tsm_case = 1
-    node_factor = 5
+    node_factor = 6
     radius_divisor = 2
-    init_learning_rate = 0.5
-    decay = "linear"
+    init_learning_rate = 0.9
+    decay = "power"
 
     cities = DataReader.read_tsm_file(tsm_case)
     originals = cities
@@ -111,6 +112,7 @@ def tsm_test(k: int=10):
             print("Epoch %d/%d" % (i, epochs))
     print("DONE")
     Utilities.store_tsm_result(tsm_case,
+                               epochs,
                                node_factor,
                                init_learning_rate,
                                radius_divisor,
