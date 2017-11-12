@@ -53,11 +53,11 @@ def create_solution(cases: tensor, originals: tensor, neurons: tensor, line: Any
 
 
 def tsm_test(k: int=10):
-    tsm_case = 6
+    tsm_case = 1
     epochs = 400
     node_factor = 6
-    radius_divisor = 2
-    init_learning_rate = 0.9
+    radius_divisor = 3
+    init_learning_rate = 0.7
     decay = "power"
 
     cities = DataReader.read_tsm_file(tsm_case)
@@ -88,11 +88,12 @@ def tsm_test(k: int=10):
         assert False, "Invalid decay function"
 
     for i in range(epochs):
+
+        radius = int(init_radius * decay_f(i))
+        l_rate = init_learning_rate * decay_f(i)
+
         for case in city_cases:
             winner = Utilities.get_winning_neuron(case, weights)
-
-            radius = int(init_radius * decay_f(i))
-            l_rate = init_learning_rate * decay_f(i)
 
             Utilities.update_weight_matrix(case, l_rate, winner, weights)
             # Update neighbours to the right
@@ -118,6 +119,9 @@ def tsm_test(k: int=10):
                                radius_divisor,
                                decay,
                                create_solution(city_cases, originals, weights, line2, fig))
+
+
+
 
 
 tsm_test()
