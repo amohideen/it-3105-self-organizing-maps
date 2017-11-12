@@ -2,6 +2,8 @@
 # Created: 29.10.17 21:08
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as colormap
+
 tensor = np.array
 
 
@@ -37,3 +39,20 @@ def plot_cities_and_neurons(cities: tensor, neurons: tensor):
 
     plt.show()
     return line1, line2, fig
+
+
+
+
+def plot_mnist_color(memory: tensor, epoch: int):
+    fig = plt.figure()
+    fig.add_subplot()
+    fig.canvas.set_window_title("Epoch %d" % epoch)
+    plt.title("Epoch %d" % epoch)
+
+    cmap = colormap.get_cmap("jet")
+    cmap.set_under("w")
+
+    plt.pcolormesh(memory, cmap=cmap, vmin=0)
+    plt.colorbar(cmap=cmap)
+    plt.savefig("mnist_images/%02d.png" % epoch, dpi=150)
+    plt.close(fig)

@@ -1,6 +1,9 @@
 # Project: IT_3105_Module_4
 # Created: 31.10.17 13:12
 import numpy as np
+from typing import Tuple
+import os
+from functools import partial
 tensor = np.array
 
 
@@ -26,12 +29,35 @@ class Utilities:
         return int(np.argmin(distances))
 
     @staticmethod
+    def get_winning_neuron_2d(case: tensor, weight_matrix: tensor) -> Tuple:
+        n_rows, n_cols, _ = weight_matrix.shape
+        distances = np.empty(shape=(n_rows, n_cols))
+        for r in range(n_rows):
+            for c in range(n_cols):
+                distances[r][c] = Utilities.euclidian_distance(case, weight_matrix[r][c])
+        return tuple(np.unravel_index(distances.argmin(), distances.shape))
+
+    @staticmethod
     def update_weight_matrix(case: tensor, l_rate: float, win_index: int, weight_matrix: tensor):
         j = win_index
         weight_matrix[j] = weight_matrix[j] + l_rate * (case - weight_matrix[j])
+
+    @staticmethod
+    def update_weight_matrix_2d(case: tensor, l_rate: float, r: int, c: int, matrix):
+        matrix[r][c] = matrix[r][c] + l_rate * (case - matrix[r][c])
 
     @staticmethod
     def store_tsm_result(case: int, epochs: int,  nodes: int, l_rate: float, radius: int, decay: str, result: float):
         line = "%d\t\t%d\t\t%d\t\t%.2f\t\t%d\t\t%s\t\t%.2f\n" % (case, epochs, nodes, l_rate, radius, decay, result)
         with open("tsm_results.txt", "a") as f:
             f.write(line)
+
+    @staticmethod
+    def delete_previous_output(folder: str):
+        for img in os.listdir(folder):
+            img_path = os.path.join(folder, img)
+            try:
+                if os.path.isfile(img_path):
+                    os.unlink(img_path)
+            except Exception as e:
+                print(e)
