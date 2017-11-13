@@ -3,22 +3,49 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as colormap
+from typing import List, Tuple
+
 
 tensor = np.array
 
 
-def plot_tsm_points(locations: tensor, show_labels: bool=True):
-    plt.figure()
+class TSMVisualizer:
 
-    labels = locations[:, 0]
-    xs = locations[:, 1]
-    ys = locations[:, 2]
-    plt.plot(xs, ys, "ro")
-    if show_labels:
-        for i in range(len(locations)):
-            plt.annotate(str(int(labels[i])), xy=(xs[i], ys[i]))
+    def _weights_to_coordinates(self, weights: tensor) -> Tuple[List, List]:
+        xs = []
+        ys = []
+        for i in range(len(weights[0])):
+            xs.append(weights[0][i][0])
+            ys.append(weights[0][i][1])
+        return xs, ys
 
-    plt.show()
+    def __init__(self, cities: tensor, weights: tensor):
+        self.fig = plt.figure()
+
+        plt.ion()
+
+        # Plot cities
+        x_cities = cities[:, 0]
+        y_cities = cities[:, 1]
+        plt.plot(x_cities, y_cities, "ro")
+
+        # Plot weights
+        x_weights, y_weights = self._weights_to_coordinates(weights)
+        self.weight_line = plt.plot(x_weights, y_weights, ":b")[0]
+
+        # Solution Line
+        self.solution_line = plt.plot([], [], "k", linewidth=2)
+
+        plt.show()
+
+    def update_weights(self, weights: tensor):
+        xs = weights[:, :, 0][0]
+        ys = weights[:, :, 1][0]
+        # xs, ys = self._weights_to_coordinates(weights)
+        self.weight_line.set_xdata(np.append(xs, xs[0]))
+        self.weight_line.set_ydata(np.append(ys, ys[0]))
+        self.fig.canvas.draw()
+
 
 
 def plot_cities_and_neurons(cities: tensor, neurons: tensor):
@@ -56,3 +83,4 @@ def plot_mnist_color(memory: tensor, epoch: int):
     plt.colorbar(cmap=cmap)
     plt.savefig("mnist_images/%02d.png" % epoch, dpi=150)
     plt.close(fig)
+
