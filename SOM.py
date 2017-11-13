@@ -2,11 +2,11 @@
 # Created: 09.11.17 13:04
 
 import numpy as np
-from mnist import mnist_basics
 from typing import Tuple, List, Union
 from Utilities import Utilities
 from Visualization import plot_mnist_color, TSMVisualizer
 from DataReader import DataReader
+from collections import defaultdict
 import math
 from functools import partial
 from Decay import Decay
@@ -17,15 +17,6 @@ np.set_printoptions(suppress=True)
 
 tensor = np.array
 NoOp = None
-
-
-
-def load_mnist(train_limit: int = 50000, test_limit: int = 10000) -> Tuple[tensor, tensor, tensor, tensor]:
-    cases = mnist_basics.load_all_flat_cases()
-    features = tensor(cases[0]) / 255
-    labels = tensor(cases[1])
-    return features[:train_limit], labels[:train_limit], \
-           features[train_limit:train_limit + test_limit], labels[train_limit:train_limit + test_limit]
 
 
 
@@ -44,6 +35,7 @@ class SOM:
                  labels: Union[tensor, None]=None,
                  test_features: Union[tensor, None]=None,
                  test_labels: Union[tensor, None]=None,
+                 originals: Union[tensor, None]=None,
                  display_interval: int=10):
         self.mnist = mnist
         self.features = features
@@ -56,6 +48,7 @@ class SOM:
         self.display_interval = display_interval
         self.initial_radius = initial_radius
         self.initial_l_rate = initial_l_rate
+        self.originals = originals
         self.feature_len = max(map(len, self.features))
 
         time_const = self.n_epochs / np.log(self.initial_radius)
@@ -85,6 +78,22 @@ class SOM:
         if not mnist:
             self.tsm_visualizer = TSMVisualizer(self.features, self.weights)
 
+    def create_tsm_solution(self, epoch: int):
+        solution_map = defaultdict(list)
+        for i, feature in enumerate(self.features):
+            winner = Utilities.get_winning_neuron_2d(feature, self.weights)
+            solution_map[winner].append(i)
+        solution_indices = []
+        for key in sorted(solution_map.keys(), key=lambda tup: tup[1]):
+            solution_indices.extend(solution_map[key])
+        normalized_solution = list(map(lambda i: self.features[i], solution_indices))
+        solution = list(map(lambda i: self.originals[i], solution_indices))
+        total = 0
+        for i in range(len(solution) - 1):
+            total += Utilities.euclidian_distance(solution[i], solution[i + 1])
+        total += Utilities.euclidian_distance(solution[-1], solution[0])
+        self.tsm_visualizer.update_solution(tensor(normalized_solution), total, epoch)
+
     def generate_neighbour_coordinates(self,
                                        row: int,
                                        col: int,
@@ -107,17 +116,11 @@ class SOM:
 
     def generate_tsm_neighbours(self, col_position: int, radius: int):
         result = []
-        for i in range(col_position + 1, col_position + int(radius) + 1):
-            result.append((0, i % self.n_output_cols))
-        for i in range(col_position - 1,  (radius - col_position) - 1, -1):
-            result.append((0, i % self.n_output_cols))
-        return result
+        for i in range(1, radius + 1):
+            result.append((0, (col_position + i) % self.n_output_cols))
+            result.append((0, (col_position - i) % self.n_output_cols))
 
-    def average_memory(self, memory: List):
-        for r in range(len(memory)):
-            for c in range(len(memory[r])):
-                n = len(memory[r][c])
-                memory[r][c] = sum(memory[r][c]) / n if n else -1
+        return result
 
     def test(self, memory: List, weights: tensor):
         print("\n\nStarting Testing\n")
@@ -157,10 +160,11 @@ class SOM:
                     neighbours = self.generate_tsm_neighbours(col, radius)
                 for neighbour in neighbours:
                     if radius:
-                        influence = math.exp(
-                            -(Utilities.euclidian_distance(tensor(neighbour), tensor((row, col))) /
-                              (2 * radius ** 2))
-                        )
+                        if self.mnist:
+                            dist = Utilities.euclidian_distance(tensor(neighbour), tensor((row, col)))
+                        else:
+                            dist = Utilities.ring_distance(neighbour, (row, col), self.n_output_cols)
+                        influence = math.exp(-(dist / (2 * radius ** 2)))
                         Utilities.update_weight_matrix_2d(case,
                                                           influence * l_rate,
                                                           neighbour[0],
@@ -173,11 +177,13 @@ class SOM:
                 Utilities.print_progress(n_cases_to_run, counter, i, radius, l_rate) if j % 10 == 0 else NoOp
 
             if self.mnist:
-                self.average_memory(memory)
+                Utilities.average_memory(memory)
                 plot_mnist_color(memory, i) if i % self.display_interval == 0 else NoOp
             else:
                 self.tsm_visualizer.update_weights(self.weights) if i % self.display_interval == 0 else NoOp
-                pass
+                self.create_tsm_solution(i) if i % self.display_interval == 0 else NoOp
+
+        print("\n\nDone Training\n")
 
         if self.mnist:
             self.test(memory, self.weights)
@@ -186,8 +192,8 @@ class SOM:
 def main(mnist: bool, city_number: int=1):
     if mnist:
         Utilities.delete_previous_output("mnist_images")
-        mnist_features, mnist_labels, mnist_test_features, mnist_test_labels = load_mnist(train_limit=4000,
-                                                                                          test_limit=100)
+        mnist_features, mnist_labels, mnist_test_features, mnist_test_labels = DataReader.load_mnist(train_limit=4000,
+                                                                                                     test_limit=100)
         som = SOM(mnist=True,
                   features=mnist_features,
                   labels=mnist_labels,
@@ -198,14 +204,15 @@ def main(mnist: bool, city_number: int=1):
                   initial_l_rate=0.7,
                   radius_decay_func="power",
                   l_rate_decay_func="power",
-                  n_output_cols=15,
-                  n_output_rows=15,
+                  n_output_cols=20,
+                  n_output_rows=20,
                   display_interval=1)
         som.run()
 
         Utilities.make_gif(mnist=True)
 
     else:
+        Utilities.delete_previous_output("tsm_images")
         cities = DataReader.read_tsm_file(city_number)
         means, stds, norm_cities = Utilities.normalize_coordinates(cities)
         features = norm_cities[:, 1:]
@@ -219,37 +226,22 @@ def main(mnist: bool, city_number: int=1):
 
         som = SOM(mnist=False,
                   features=features,
-                  n_epochs=400,
+                  n_epochs=500,
                   n_output_rows=1,
                   n_output_cols=out_size,
                   initial_radius=init_rad,
-                  initial_l_rate=0.7,
-                  radius_decay_func="exp",
-                  l_rate_decay_func="exp",
+                  initial_l_rate=0.3,
+                  radius_decay_func="power",
+                  l_rate_decay_func="power",
+                  originals=cities[:, 1:],
                   display_interval=10)
 
         som.run()
-
+        Utilities.make_gif(mnist=False)
 
 
 if __name__ == "__main__":
     # cProfile.run("main(False, 1)")
-    main(False, 1)
-    input()
-
-'''
-Epoch 0/400 lrate: 0.700 rad: 156
-Epoch 10/400 lrate: 0.613 rad: 136
-Epoch 20/400 lrate: 0.537 rad: 119
-Epoch 30/400 lrate: 0.470 rad: 104
-Epoch 40/400 lrate: 0.412 rad: 91
-Epoch 50/400 lrate: 0.361 rad: 80
-Epoch 60/400 lrate: 0.316 rad: 70
-Epoch 70/400 lrate: 0.277 rad: 61
-Epoch 80/400 lrate: 0.243 rad: 54
-Epoch 90/400 lrate: 0.213 rad: 47
-Epoch 100/400 lrate: 0.186 rad: 41
-'''
-
+    main(True, 1)
 
 

@@ -34,7 +34,7 @@ class TSMVisualizer:
         self.weight_line = plt.plot(x_weights, y_weights, ":b")[0]
 
         # Solution Line
-        self.solution_line = plt.plot([], [], "k", linewidth=2)
+        self.solution_line = plt.plot([], [], "k", linewidth=2)[0]
 
         plt.show()
 
@@ -44,6 +44,15 @@ class TSMVisualizer:
         # xs, ys = self._weights_to_coordinates(weights)
         self.weight_line.set_xdata(np.append(xs, xs[0]))
         self.weight_line.set_ydata(np.append(ys, ys[0]))
+        self.fig.canvas.draw()
+
+    def update_solution(self, solution: tensor, distance: float, epoch: int):
+        xs = solution[:, 0]
+        ys = solution[:, 1]
+        self.solution_line.set_xdata(np.append(xs, xs[0]))
+        self.solution_line.set_ydata(np.append(ys, ys[0]))
+        plt.title("Epoch %3d, Distance: %.2f" % (epoch, distance))
+        plt.savefig("tsm_images/%03d.png" % epoch, dpi=150)
         self.fig.canvas.draw()
 
 
