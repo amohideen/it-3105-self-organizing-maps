@@ -1,7 +1,7 @@
 # Project: IT_3105_Module_4
 # Created: 31.10.17 13:12
 import numpy as np
-from typing import Tuple
+from typing import Tuple, List
 import os
 from termcolor import colored
 import os
@@ -44,6 +44,13 @@ class Utilities:
         return np.sqrt(np.sum(np.square(v1-v2)))
 
     @staticmethod
+    def ring_distance(p1: Tuple, p2: Tuple, size: int):
+        i = p1[1]
+        j = p2[1]
+        return min(abs(i - j), size - abs(i - j))
+
+
+    @staticmethod
     def get_winning_neuron(case: tensor, weight_matrix: tensor) -> int:
         distances = np.apply_along_axis(Utilities.euclidian_distance, 1, weight_matrix, case)
         return int(np.argmin(distances))
@@ -81,6 +88,13 @@ class Utilities:
                     os.unlink(img_path)
             except Exception as e:
                 print(e)
+
+    @staticmethod
+    def average_memory(memory: List):
+        for r in range(len(memory)):
+            for c in range(len(memory[r])):
+                n = len(memory[r][c])
+                memory[r][c] = sum(memory[r][c]) / n if n else -1
 
     @staticmethod
     def make_gif(mnist: bool):
