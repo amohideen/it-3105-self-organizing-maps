@@ -5,14 +5,15 @@ import numpy as np
 from mnist import mnist_basics
 from typing import Tuple, List, Union
 from Utilities import Utilities
-from Visualization import plot_mnist_color
+from Visualization import plot_mnist_color, TSMVisualizer
+from DataReader import DataReader
 import math
-from termcolor import colored
 from functools import partial
 from Decay import Decay
-import os
+import cProfile
 np.random.seed(123)
 from pprint import pprint
+np.set_printoptions(suppress=True)
 
 tensor = np.array
 NoOp = None
@@ -28,10 +29,10 @@ def load_mnist(train_limit: int = 50000, test_limit: int = 10000) -> Tuple[tenso
 
 
 
-
 class SOM:
 
     def __init__(self,
+                 mnist: bool,
                  features: tensor,
                  n_epochs: int,
                  n_output_rows: int,
@@ -44,6 +45,7 @@ class SOM:
                  test_features: Union[tensor, None]=None,
                  test_labels: Union[tensor, None]=None,
                  display_interval: int=10):
+        self.mnist = mnist
         self.features = features
         self.labels = labels
         self.test_features = test_features
@@ -76,12 +78,17 @@ class SOM:
         else:
             assert False, "Invalid learning rate decay function"
 
+        self.weights = np.random.uniform(np.min(features),
+                                         np.max(features),
+                                         size=(self.n_output_rows, self.n_output_cols, self.feature_len))
+
+        if not mnist:
+            self.tsm_visualizer = TSMVisualizer(self.features, self.weights)
 
     def generate_neighbour_coordinates(self,
                                        row: int,
                                        col: int,
-                                       radius: float,
-                                       wrap: bool = False) -> List[Tuple]:
+                                       radius: float) -> List[Tuple]:
         def _in_range(r: int, c: int, n_rows: int, n_cols: int) -> bool:
             return 0 <= r < n_rows and 0 <= c < n_cols
         neighbours = []
@@ -95,20 +102,22 @@ class SOM:
                 neighbours.append((row, col + dc))
                 neighbours.append((row - dr, col))
                 neighbours.append((row + dr, col))
-        if wrap:
-            return list(set(map(lambda t: (t[0] % self.n_output_rows, t[1] % self.n_output_cols),
-                                neighbours)))
-        else:
-            return list(set(filter(lambda t: _in_range(t[0], t[1], self.n_output_rows, self.n_output_cols),
-                                   neighbours)))
+        return list(set(filter(lambda t: _in_range(t[0], t[1], self.n_output_rows, self.n_output_cols),
+                               neighbours)))
 
+    def generate_tsm_neighbours(self, col_position: int, radius: int):
+        result = []
+        for i in range(col_position + 1, col_position + int(radius) + 1):
+            result.append((0, i % self.n_output_cols))
+        for i in range(col_position - 1,  (radius - col_position) - 1, -1):
+            result.append((0, i % self.n_output_cols))
+        return result
 
     def average_memory(self, memory: List):
         for r in range(len(memory)):
             for c in range(len(memory[r])):
                 n = len(memory[r][c])
                 memory[r][c] = sum(memory[r][c]) / n if n else -1
-
 
     def test(self, memory: List, weights: tensor):
         print("\n\nStarting Testing\n")
@@ -123,80 +132,124 @@ class SOM:
         accuracy = sum(predictions) / len(predictions)
         print("Accuracy: %f%%" % (accuracy * 100))
 
-
-    def print_progress(self, total: int, i: int, epoch: int, radius: int, l_rate: float):
-        percentage = int((i / total) * 100)
-        if percentage < 25:
-            color = "red"
-        elif 25 <= percentage < 75:
-            color = "yellow"
-        else:
-            color = "green"
-        progress_bar = "[%s>%s]" % (("=" * percentage), (" " * (100 - percentage)))
-        progress_bar = colored(progress_bar, color)
-        print("\r%s %3d%% \t Epoch: %d \t L_Rate: %.3f \t Radius: %d" %
-              (progress_bar, percentage, epoch, l_rate, radius),
-              end="",
-              flush=True)
-
     def run(self):
-        decay = "linear"
 
         n_cases_to_run = self.n_epochs * len(self.features)
         counter = 0
 
-        weights = np.random.uniform(size=(self.n_output_rows, self.n_output_cols, self.feature_len))
         memory = None
 
         print("\nStarting Training Session\n")
 
         for i in range(self.n_epochs):
-
             memory = [[[] for _ in range(self.n_output_cols)] for _ in range(self.n_output_rows)]
 
-            radius = int(self.initial_radius * self.radius_decay_func(i))
+            radius = int(round(self.initial_radius * self.radius_decay_func(i)))
             l_rate = self.initial_l_rate * self.l_rate_decay_func(i)
 
             for j, case in enumerate(self.features):
-                row, col = Utilities.get_winning_neuron_2d(case, weights)
-                Utilities.update_weight_matrix_2d(case, l_rate, row, col, weights)
-                for neighbour in self.generate_neighbour_coordinates(row, col, radius):
-                    influence = math.exp(
-                        -(Utilities.euclidian_distance(tensor(neighbour), tensor((row, col)) ** 2) / (2 * radius ** 2))
-                    )
-                    Utilities.update_weight_matrix_2d(case, influence * l_rate, neighbour[0], neighbour[1], weights)
-
-                memory[row][col].append(self.labels[j])
+                row, col = Utilities.get_winning_neuron_2d(case, self.weights)
+                Utilities.update_weight_matrix_2d(case, l_rate, row, col, self.weights)
+                # TODO make one fast implementation
+                if self.mnist:
+                    neighbours = self.generate_neighbour_coordinates(row, col, radius)
+                else:
+                    neighbours = self.generate_tsm_neighbours(col, radius)
+                for neighbour in neighbours:
+                    if radius:
+                        influence = math.exp(
+                            -(Utilities.euclidian_distance(tensor(neighbour), tensor((row, col))) /
+                              (2 * radius ** 2))
+                        )
+                        Utilities.update_weight_matrix_2d(case,
+                                                          influence * l_rate,
+                                                          neighbour[0],
+                                                          neighbour[1],
+                                                          self.weights)
+                if self.mnist:
+                    memory[row][col].append(self.labels[j])
 
                 counter += 1
-                self.print_progress(n_cases_to_run, counter, i, radius, l_rate) if j % 100 else NoOp
+                Utilities.print_progress(n_cases_to_run, counter, i, radius, l_rate) if j % 10 == 0 else NoOp
 
-            self.average_memory(memory)
-            plot_mnist_color(memory, i) if i % self.display_interval == 0 else NoOp
+            if self.mnist:
+                self.average_memory(memory)
+                plot_mnist_color(memory, i) if i % self.display_interval == 0 else NoOp
+            else:
+                self.tsm_visualizer.update_weights(self.weights) if i % self.display_interval == 0 else NoOp
+                pass
 
-        self.test(memory, weights)
+        if self.mnist:
+            self.test(memory, self.weights)
+
+
+def main(mnist: bool, city_number: int=1):
+    if mnist:
+        Utilities.delete_previous_output("mnist_images")
+        mnist_features, mnist_labels, mnist_test_features, mnist_test_labels = load_mnist(train_limit=4000,
+                                                                                          test_limit=100)
+        som = SOM(mnist=True,
+                  features=mnist_features,
+                  labels=mnist_labels,
+                  test_features=mnist_test_features,
+                  test_labels=mnist_test_labels,
+                  n_epochs=15,
+                  initial_radius=5,
+                  initial_l_rate=0.7,
+                  radius_decay_func="power",
+                  l_rate_decay_func="power",
+                  n_output_cols=15,
+                  n_output_rows=15,
+                  display_interval=1)
+        som.run()
+
+        Utilities.make_gif(mnist=True)
+
+    else:
+        cities = DataReader.read_tsm_file(city_number)
+        means, stds, norm_cities = Utilities.normalize_coordinates(cities)
+        features = norm_cities[:, 1:]
+
+        # TSM Hyper Params
+        node_factor = 6
+        radius_divisor = 2
+
+        out_size = len(features) * node_factor
+        init_rad = int(out_size / radius_divisor)
+
+        som = SOM(mnist=False,
+                  features=features,
+                  n_epochs=400,
+                  n_output_rows=1,
+                  n_output_cols=out_size,
+                  initial_radius=init_rad,
+                  initial_l_rate=0.7,
+                  radius_decay_func="exp",
+                  l_rate_decay_func="exp",
+                  display_interval=10)
+
+        som.run()
 
 
 
+if __name__ == "__main__":
+    # cProfile.run("main(False, 1)")
+    main(False, 1)
+    input()
 
-Utilities.delete_previous_output("mnist_images")
+'''
+Epoch 0/400 lrate: 0.700 rad: 156
+Epoch 10/400 lrate: 0.613 rad: 136
+Epoch 20/400 lrate: 0.537 rad: 119
+Epoch 30/400 lrate: 0.470 rad: 104
+Epoch 40/400 lrate: 0.412 rad: 91
+Epoch 50/400 lrate: 0.361 rad: 80
+Epoch 60/400 lrate: 0.316 rad: 70
+Epoch 70/400 lrate: 0.277 rad: 61
+Epoch 80/400 lrate: 0.243 rad: 54
+Epoch 90/400 lrate: 0.213 rad: 47
+Epoch 100/400 lrate: 0.186 rad: 41
+'''
 
 
-mnist_features, mnist_labels, mnist_test_features, mnist_test_labels = load_mnist(train_limit=1000, test_limit=100)
 
-som = SOM(features=mnist_features,
-          labels=mnist_labels,
-          test_features=mnist_test_features,
-          test_labels=mnist_test_labels,
-          n_epochs=10,
-          initial_radius=5,
-          initial_l_rate=0.7,
-          radius_decay_func="linear",
-          l_rate_decay_func="linear",
-          n_output_cols=10,
-          n_output_rows=10,
-          display_interval=10)
-som.run()
-
-os.chdir("/home/espen/Documents/AI Prog/IT_3105_Module_4/mnist_images")
-os.system("convert -loop 0 -delay 100 *.png out.gif")

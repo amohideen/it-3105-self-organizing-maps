@@ -56,13 +56,13 @@ def tsm_test(k: int=10):
     tsm_case = 1
     epochs = 400
     node_factor = 6
-    radius_divisor = 3
+    radius_divisor = 2
     init_learning_rate = 0.7
     decay = "power"
 
     cities = DataReader.read_tsm_file(tsm_case)
     originals = cities
-    cities = Utilities.normalize_coordinates(cities)
+    cities = Utilities.normalize_coordinates_old(cities)
 
     labels = cities[:, 0:1]
     city_cases = cities[:, 1:]
@@ -71,7 +71,7 @@ def tsm_test(k: int=10):
     out_size = len(cities) * node_factor
 
     weights = np.random.uniform(np.min(city_cases), np.max(city_cases), size=(out_size, n_features))
-
+    print(weights.shape)
     init_radius = out_size / radius_divisor
 
     time_const = epochs / np.log(init_radius)
@@ -110,7 +110,7 @@ def tsm_test(k: int=10):
         if i % k == 0:
             update_plot(weights, line1, fig)
             create_solution(city_cases, originals, weights, line2, fig)
-            print("Epoch %d/%d" % (i, epochs))
+            print("Epoch %d/%d lrate: %.3f rad: %d" % (i, epochs, l_rate, radius))
     print("DONE")
     Utilities.store_tsm_result(tsm_case,
                                epochs,

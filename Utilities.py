@@ -3,7 +3,8 @@
 import numpy as np
 from typing import Tuple
 import os
-from functools import partial
+from termcolor import colored
+import os
 tensor = np.array
 
 
@@ -16,7 +17,26 @@ class Utilities:
         for row in range(len(cities)):
             for col in range(1, len(cities[row])):
                 cities[row][col] = (cities[row][col] - means[col]) / stds[col]
+        return means, stds, cities
+
+    @staticmethod
+    def normalize_coordinates_old(cities: tensor) -> tensor:
+        cities = np.copy(cities)
+        means = np.mean(cities, axis=0)
+        stds = np.std(cities, axis=0)
+        for row in range(len(cities)):
+            for col in range(1, len(cities[row])):
+                cities[row][col] = (cities[row][col] - means[col]) / stds[col]
         return cities
+
+    @staticmethod
+    def denormalize_coordinates(means, stds, cities):
+        cities = np.copy(cities)
+        for row in range(len(cities)):
+            for col in range(1, len(cities[row])):
+                cities[row][col] = cities[row][col] * stds[col] + means[col]
+        return cities
+
 
     @staticmethod
     def euclidian_distance(v1: tensor, v2: tensor) -> float:
@@ -61,3 +81,29 @@ class Utilities:
                     os.unlink(img_path)
             except Exception as e:
                 print(e)
+
+    @staticmethod
+    def make_gif(mnist: bool):
+        if mnist:
+            os.chdir("/home/espen/Documents/AI Prog/IT_3105_Module_4/mnist_images")
+            os.system("convert -loop 0 -delay 100 *.png out.gif")
+        else:
+            os.chdir("/home/espen/Documents/AI Prog/IT_3105_Module_4/tsm_images")
+            os.system("convert -loop 0 -delay 100 *.png out.gif")
+
+    @staticmethod
+    def print_progress(total: int, i: int, epoch: int, radius: int, l_rate: float):
+        percentage = int((i / total) * 100)
+        if percentage < 25:
+            color = "red"
+        elif 25 <= percentage < 75:
+            color = "yellow"
+        else:
+            color = "green"
+        progress_bar = "[%s>%s]" % (("=" * percentage), (" " * (100 - percentage)))
+        progress_bar = colored(progress_bar, color)
+        print("\r%s %3d%% \t Epoch: %d \t L_Rate: %.3f \t Radius: %d" %
+              (progress_bar, percentage, epoch, l_rate, radius),
+              end="",
+              flush=True)
+
