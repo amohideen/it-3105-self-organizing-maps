@@ -177,11 +177,13 @@ class SOM:
                 Utilities.print_progress(n_cases_to_run, counter, i, radius, l_rate) if j % 10 == 0 else NoOp
 
             if self.mnist:
-                Utilities.average_memory(memory)
-                plot_mnist_color(memory, i) if i % self.display_interval == 0 else NoOp
+                if i % self.display_interval == 0 or i == self.n_epochs - 1:
+                    Utilities.average_memory(memory)
+                    plot_mnist_color(memory, i)
             else:
-                self.tsm_visualizer.update_weights(self.weights) if i % self.display_interval == 0 else NoOp
-                self.create_tsm_solution(i) if i % self.display_interval == 0 else NoOp
+                if i % self.display_interval == 0 or i == self.n_epochs - 1:
+                    self.tsm_visualizer.update_weights(self.weights)
+                    self.create_tsm_solution(i)
 
         print("\n\nDone Training\n")
 
@@ -199,7 +201,7 @@ def main(mnist: bool, city_number: int=1):
                   labels=mnist_labels,
                   test_features=mnist_test_features,
                   test_labels=mnist_test_labels,
-                  n_epochs=15,
+                  n_epochs=10,
                   initial_radius=5,
                   initial_l_rate=0.7,
                   radius_decay_func="power",
@@ -242,6 +244,7 @@ def main(mnist: bool, city_number: int=1):
 
 if __name__ == "__main__":
     # cProfile.run("main(False, 1)")
+    # cProfile.run("main(True)")
     main(True, 1)
 
 
