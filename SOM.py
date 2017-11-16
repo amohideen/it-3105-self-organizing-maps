@@ -162,12 +162,11 @@ class SOM:
                 counter += 1
                 Utilities.print_progress(n_cases_to_run, counter, i, radius, l_rate) if j % 10 == 0 else NoOp
 
-            if self.mnist:
-                if i % self.display_interval == 0 or i == self.n_epochs - 1:
+            if Utilities.time_to_visualize(i, self.display_interval, self.n_epochs):
+                if self.mnist:
                     Utilities.average_memory(memory)
                     plot_mnist_color(memory, i)
-            else:
-                if i % self.display_interval == 0 or i == self.n_epochs - 1:
+                else:
                     self.tsm_visualizer.update_weights(self.weights)
                     self.create_tsm_solution(i)
 

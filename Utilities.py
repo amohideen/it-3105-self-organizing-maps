@@ -103,7 +103,7 @@ class Utilities:
                 print(e)
 
     @staticmethod
-    def average_memory(memory: List):
+    def reduce_memory(memory: List):
         for r in range(len(memory)):
             for c in range(len(memory[r])):
                 n = len(memory[r][c])
@@ -133,4 +133,9 @@ class Utilities:
               (progress_bar, percentage, epoch, l_rate, radius),
               end="",
               flush=True)
+
+    @staticmethod
+    def time_to_visualize(i: int, display_interval: int, n_epochs: int) -> bool:
+        return i % display_interval == 0 or i == n_epochs - 1
+
 
