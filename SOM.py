@@ -19,7 +19,6 @@ tensor = np.array
 NoOp = None
 
 
-
 class SOM:
 
     def __init__(self,
@@ -51,25 +50,13 @@ class SOM:
         self.originals = originals
         self.feature_len = max(map(len, self.features))
 
-        time_const = self.n_epochs / np.log(self.initial_radius)
-        if radius_decay_func == "linear":
-            self.radius_decay_func = Decay.linear_decay
-        elif radius_decay_func == "exp":
-            self.radius_decay_func = partial(Decay.exp_decay, time_const=time_const)
-        elif radius_decay_func == "power":
-            self.radius_decay_func = partial(Decay.power_series, epochs=self.n_epochs)
-        else:
-            assert False, "Invalid radius decay function"
+        self.radius_decay_func = Utilities.create_decay_function(radius_decay_func,
+                                                                 self.n_epochs,
+                                                                 self.n_epochs / np.log(self.initial_radius))
 
-        time_const = n_epochs
-        if l_rate_decay_func == "linear":
-            self.l_rate_decay_func = Decay.linear_decay
-        elif l_rate_decay_func == "exp":
-            self.l_rate_decay_func = partial(Decay.exp_decay, time_const=time_const)
-        elif l_rate_decay_func == "power":
-            self.l_rate_decay_func = partial(Decay.power_series, epochs=self.n_epochs)
-        else:
-            assert False, "Invalid learning rate decay function"
+        self.l_rate_decay_func = Utilities.create_decay_function(l_rate_decay_func,
+                                                                 self.n_epochs,
+                                                                 self.n_epochs)
 
         self.weights = np.random.uniform(np.min(features),
                                          np.max(features),
@@ -153,7 +140,6 @@ class SOM:
             for j, case in enumerate(self.features):
                 row, col = Utilities.get_winning_neuron_2d(case, self.weights)
                 Utilities.update_weight_matrix_2d(case, l_rate, row, col, self.weights)
-                # TODO make one fast implementation
                 if self.mnist:
                     neighbours = self.generate_neighbour_coordinates(row, col, radius)
                 else:
@@ -245,6 +231,6 @@ def main(mnist: bool, city_number: int=1):
 if __name__ == "__main__":
     # cProfile.run("main(False, 1)")
     # cProfile.run("main(True)")
-    main(True, 1)
+    main(False, 8)
 
 

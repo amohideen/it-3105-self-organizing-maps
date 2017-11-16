@@ -1,10 +1,12 @@
 # Project: IT_3105_Module_4
 # Created: 31.10.17 13:12
 import numpy as np
-from typing import Tuple, List
+from typing import Tuple, List, Callable
 import os
 from termcolor import colored
 import os
+from Decay import Decay
+from functools import partial
 tensor = np.array
 
 
@@ -78,6 +80,17 @@ class Utilities:
         line = "%d\t\t%d\t\t%d\t\t%.2f\t\t%d\t\t%s\t\t%.2f\n" % (case, epochs, nodes, l_rate, radius, decay, result)
         with open("tsm_results.txt", "a") as f:
             f.write(line)
+
+    @staticmethod
+    def create_decay_function(name: str, epochs: int, time_const: float) -> Callable:
+        if name == "linear":
+            return Decay.linear_decay
+        elif name == "exp":
+            return partial(Decay.exp_decay, time_const=time_const)
+        elif name == "power":
+            return partial(Decay.power_series, epochs=epochs)
+        else:
+            assert False, "Invalid radius decay function"
 
     @staticmethod
     def delete_previous_output(folder: str):
