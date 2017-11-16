@@ -12,7 +12,8 @@ class DataReader:
     @staticmethod
     def read_tsm_file(number: int) -> tensor:
         def _process_line(line: str) -> List:
-            return list(map(float, line.split(" ")))
+            return list(map(float,
+                            filter(lambda s: len(s) > 0, line.split(" "))))
 
         with open("data/%d.txt" % number) as file:
             file.readline()
