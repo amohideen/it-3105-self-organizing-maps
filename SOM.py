@@ -81,6 +81,7 @@ class SOM:
             total += Utilities.euclidian_distance(solution[i], solution[i + 1])
         total += Utilities.euclidian_distance(solution[-1], solution[0])
         self.tsm_visualizer.update_solution(tensor(normalized_solution), total, epoch)
+        return total
 
     def generate_neighbour_coordinates(self,
                                        row: int,
@@ -110,16 +111,19 @@ class SOM:
 
         return result
 
-    def test(self, memory: List, weights: tensor):
-        print("\n\nStarting Testing\n")
+    def test(self, memory: List, weights: Tensor, train: bool):
+        print("\n\nStarting Testing On ", end="")
+        print("Training Set") if train else print("Test Set")
+        reduced_memory = Utilities.reduce_memory(memory)
         predictions = []
-        for i, case in enumerate(self.test_features):
+        features = self.features if train else self.test_features
+        labels = self.labels if train else self.test_labels
+        for i, case in enumerate(features):
             row, col = Utilities.get_winning_neuron_2d(case, weights)
-            prediction = memory[row][col]
-            correct = self.test_labels[i] == int(round(prediction))
+            correct = labels[i] == reduced_memory[row][col]
             predictions.append(correct)
-            if not correct:
-                print("%d ------> %f" % (self.test_labels[i], prediction))
+            if not correct and not train:
+                print("%d -------> %d" % (labels[i], reduced_memory[row][col]))
         accuracy = sum(predictions) / len(predictions)
         print("Accuracy: %f%%" % (accuracy * 100))
 
@@ -133,7 +137,8 @@ class SOM:
         print("\nStarting Training Session\n")
 
         for i in range(self.n_epochs):
-            memory = [[[] for _ in range(self.n_output_cols)] for _ in range(self.n_output_rows)]
+            if Utilities.time_to_visualize(i, self.display_interval, self.n_epochs) and self.mnist:
+                memory = [[[] for _ in range(self.n_output_cols)] for _ in range(self.n_output_rows)]
 
             radius = int(round(self.initial_radius * self.radius_decay_func(i)))
             l_rate = self.initial_l_rate * self.l_rate_decay_func(i)
@@ -157,7 +162,7 @@ class SOM:
                                                           neighbour[0],
                                                           neighbour[1],
                                                           self.weights)
-                if self.mnist:
+                if Utilities.time_to_visualize(i, self.display_interval, self.n_epochs) and self.mnist:
                     memory[row][col].append(self.labels[j])
 
                 counter += 1
@@ -165,8 +170,8 @@ class SOM:
 
             if Utilities.time_to_visualize(i, self.display_interval, self.n_epochs):
                 if self.mnist:
-                    Utilities.average_memory(memory)
-                    plot_mnist_color(memory, i)
+                    reduced_memory = Utilities.reduce_memory(memory)
+                    plot_mnist_color(reduced_memory, i)
                 else:
                     self.tsm_visualizer.update_weights(self.weights)
                     self.create_tsm_solution(i)
@@ -174,7 +179,11 @@ class SOM:
         print("\n\nDone Training\n")
 
         if self.mnist:
-            self.test(memory, self.weights)
+            self.test(memory, self.weights, True)
+            self.test(memory, self.weights, False)
+        else:
+            self.tsm_visualizer.update_weights(self.weights)
+            return self.create_tsm_solution(self.n_epochs - 1)
 
 
 def main(mnist: bool, city_number: int=1):
@@ -187,7 +196,7 @@ def main(mnist: bool, city_number: int=1):
                   labels=mnist_labels,
                   test_features=mnist_test_features,
                   test_labels=mnist_test_labels,
-                  n_epochs=10,
+                  n_epochs=5,
                   initial_radius=5,
                   initial_l_rate=0.7,
                   radius_decay_func="power",
@@ -208,29 +217,42 @@ def main(mnist: bool, city_number: int=1):
         # TSM Hyper Params
         node_factor = 6
         radius_divisor = 2
+        n_epochs = 500
+        l_rate = 0.3
+        r_decay = "power"
+        l_decay = "power"
 
         out_size = len(features) * node_factor
         init_rad = int(out_size / radius_divisor)
 
         som = SOM(mnist=False,
                   features=features,
-                  n_epochs=500,
+                  n_epochs=n_epochs,
                   n_output_rows=1,
                   n_output_cols=out_size,
                   initial_radius=init_rad,
-                  initial_l_rate=0.3,
-                  radius_decay_func="power",
-                  l_rate_decay_func="power",
+                  initial_l_rate=l_rate,
+                  radius_decay_func=r_decay,
+                  l_rate_decay_func=l_decay,
                   originals=cities[:, 1:],
                   display_interval=10)
 
-        som.run()
+        result = som.run()
+        Utilities.store_tsm_result(case=city_number,
+                                   epochs=n_epochs,
+                                   nodes=node_factor,
+                                   l_rate=l_rate,
+                                   radius=radius_divisor,
+                                   l_decay=l_decay,
+                                   r_decay=r_decay,
+                                   result=result)
         Utilities.make_gif(mnist=False)
 
 
 if __name__ == "__main__":
     # cProfile.run("main(False, 1)")
     # cProfile.run("main(True)")
+    # main(True)
     main(False, 8)
 
 

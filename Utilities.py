@@ -7,6 +7,7 @@ from termcolor import colored
 import os
 from Decay import Decay
 from functools import partial
+from copy import deepcopy
 tensor = np.array
 
 
@@ -29,23 +30,6 @@ class Utilities:
         for row in range(len(cities)):
             for col in range(1, len(cities[row])):
                 cities[row][col] = (cities[row][col] - means[col]) / stds[col]
-        return cities
-
-    @staticmethod
-    def denormalize_coordinates(means, stds, cities):
-        cities = np.copy(cities)
-        for row in range(len(cities)):
-            for col in range(1, len(cities[row])):
-                cities[row][col] = cities[row][col] * stds[col] + means[col]
-        return cities
-
-
-    @staticmethod
-    def denormalize_coordinates(means, stds, cities):
-        cities = np.copy(cities)
-        for row in range(len(cities)):
-            for col in range(1, len(cities[row])):
-                cities[row][col] = cities[row][col] * stds[col] + means[col]
         return cities
 
 
@@ -85,8 +69,16 @@ class Utilities:
         matrix[r][c] = matrix[r][c] + l_rate * (case - matrix[r][c])
 
     @staticmethod
-    def store_tsm_result(case: int, epochs: int,  nodes: int, l_rate: float, radius: int, decay: str, result: float):
-        line = "%d\t\t%d\t\t%d\t\t%.2f\t\t%d\t\t%s\t\t%.2f\n" % (case, epochs, nodes, l_rate, radius, decay, result)
+    def store_tsm_result(case: int,
+                         epochs: int,
+                         nodes: int,
+                         l_rate: float,
+                         radius: int,
+                         l_decay: str,
+                         r_decay: str,
+                         result: float):
+        line = "%d\t\t%d\t\t%d\t\t%.2f\t\t%d\t\t%s\t\t%s\t\t%.2f\n" % \
+               (case, epochs, nodes, l_rate, radius, l_decay, r_decay, result)
         with open("tsm_results.txt", "a") as f:
             f.write(line)
 
@@ -112,11 +104,17 @@ class Utilities:
                 print(e)
 
     @staticmethod
-    def average_memory(memory: List):
+    def reduce_memory(memory: List):
+        memory = deepcopy(memory)
         for r in range(len(memory)):
             for c in range(len(memory[r])):
                 n = len(memory[r][c])
-                memory[r][c] = sum(memory[r][c]) / n if n else -1
+                if n:
+                    counts = np.bincount(memory[r][c])
+                    memory[r][c] = np.argmax(counts)
+                else:
+                    memory[r][c] = -1
+        return memory
 
     @staticmethod
     def make_gif(mnist: bool):
