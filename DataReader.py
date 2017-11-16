@@ -5,12 +5,13 @@ import numpy as np
 from typing import List, Tuple
 from mnist import mnist_basics
 tensor = np.array
+Tensor = np.ndarray
 
 
 class DataReader:
 
     @staticmethod
-    def read_tsm_file(number: int) -> tensor:
+    def read_tsm_file(number: int) -> Tensor:
         def _process_line(line: str) -> List:
             return list(map(float,
                             filter(lambda s: len(s) > 0, line.split(" "))))
@@ -25,7 +26,7 @@ class DataReader:
             return tensor(lines)
 
     @staticmethod
-    def load_mnist(train_limit: int = 50000, test_limit: int = 10000) -> Tuple[tensor, tensor, tensor, tensor]:
+    def load_mnist(train_limit: int = 50000, test_limit: int = 10000) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         cases = mnist_basics.load_all_flat_cases()
         features = tensor(cases[0]) / 255
         labels = tensor(cases[1])
