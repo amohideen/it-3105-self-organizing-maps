@@ -214,4 +214,8 @@ venv.bak/
 
 mnist/
 
+mnist_images/
+
+tsm_images/
+
 # End of https://www.gitignore.io/api/linux,macos,python,pycharm
