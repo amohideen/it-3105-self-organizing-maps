@@ -16,6 +16,7 @@ from pprint import pprint
 np.set_printoptions(suppress=True)
 
 tensor = np.array
+Tensor = np.ndarray
 NoOp = None
 
 
@@ -23,7 +24,7 @@ class SOM:
 
     def __init__(self,
                  mnist: bool,
-                 features: tensor,
+                 features: Tensor,
                  n_epochs: int,
                  n_output_rows: int,
                  n_output_cols: int,
@@ -31,10 +32,10 @@ class SOM:
                  initial_l_rate: float,
                  radius_decay_func: str,
                  l_rate_decay_func: str,
-                 labels: Union[tensor, None]=None,
-                 test_features: Union[tensor, None]=None,
-                 test_labels: Union[tensor, None]=None,
-                 originals: Union[tensor, None]=None,
+                 labels: Union[Tensor, None]=None,
+                 test_features: Union[Tensor, None]=None,
+                 test_labels: Union[Tensor, None]=None,
+                 originals: Union[Tensor, None]=None,
                  display_interval: int=10):
         self.mnist = mnist
         self.features = features
