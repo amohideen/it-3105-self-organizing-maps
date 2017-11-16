@@ -104,7 +104,7 @@ fabric.properties
 # modules.xml
 # .idea/misc.xml
 # *.ipr
-
+.idea/
 # Sonarlint plugin
 .idea/sonarlint
 
@@ -218,4 +218,5 @@ mnist_images/
 
 tsm_images/
 
+=======
 # End of https://www.gitignore.io/api/linux,macos,python,pycharm

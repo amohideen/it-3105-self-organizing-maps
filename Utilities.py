@@ -41,6 +41,15 @@ class Utilities:
 
 
     @staticmethod
+    def denormalize_coordinates(means, stds, cities):
+        cities = np.copy(cities)
+        for row in range(len(cities)):
+            for col in range(1, len(cities[row])):
+                cities[row][col] = cities[row][col] * stds[col] + means[col]
+        return cities
+
+
+    @staticmethod
     def euclidian_distance(v1: tensor, v2: tensor) -> float:
         assert len(v1) == len(v2), "Tensors must be of equal length to compute distance"
         return np.sqrt(np.sum(np.square(v1-v2)))
@@ -103,7 +112,7 @@ class Utilities:
                 print(e)
 
     @staticmethod
-    def reduce_memory(memory: List):
+    def average_memory(memory: List):
         for r in range(len(memory)):
             for c in range(len(memory[r])):
                 n = len(memory[r][c])
@@ -137,5 +146,4 @@ class Utilities:
     @staticmethod
     def time_to_visualize(i: int, display_interval: int, n_epochs: int) -> bool:
         return i % display_interval == 0 or i == n_epochs - 1
-
 
