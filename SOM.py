@@ -214,39 +214,45 @@ def main(mnist: bool, city_number: int=1):
         means, stds, norm_cities = Utilities.normalize_coordinates(cities)
         features = norm_cities[:, 1:]
 
-        # TSM Hyper Params
-        node_factor = 6
-        radius_divisor = 2
-        n_epochs = 500
-        l_rate = 0.3
-        r_decay = "power"
-        l_decay = "power"
+        import random
+        while True:
+            Utilities.delete_previous_output("tsm_images")
 
-        out_size = len(features) * node_factor
-        init_rad = int(out_size / radius_divisor)
+            # TSM Hyper Params
+            node_factor = random.randint(2, 10)
+            radius_divisor = random.randint(1, 4)
+            n_epochs = random.randint(100, 1000)
+            l_rate = random.random()
 
-        som = SOM(mnist=False,
-                  features=features,
-                  n_epochs=n_epochs,
-                  n_output_rows=1,
-                  n_output_cols=out_size,
-                  initial_radius=init_rad,
-                  initial_l_rate=l_rate,
-                  radius_decay_func=r_decay,
-                  l_rate_decay_func=l_decay,
-                  originals=cities[:, 1:],
-                  display_interval=10)
+            funcs = ["exp","power"]
+            r_decay = funcs[random.randint(0,1)]
+            l_decay = funcs[random.randint(0,1)]
 
-        result = som.run()
-        Utilities.store_tsm_result(case=city_number,
-                                   epochs=n_epochs,
-                                   nodes=node_factor,
-                                   l_rate=l_rate,
-                                   radius=radius_divisor,
-                                   l_decay=l_decay,
-                                   r_decay=r_decay,
-                                   result=result)
-        Utilities.make_gif(mnist=False)
+            out_size = len(features) * node_factor
+            init_rad = int(out_size / radius_divisor)
+
+            som = SOM(mnist=False,
+                      features=features,
+                      n_epochs=n_epochs,
+                      n_output_rows=1,
+                      n_output_cols=out_size,
+                      initial_radius=init_rad,
+                      initial_l_rate=l_rate,
+                      radius_decay_func=r_decay,
+                      l_rate_decay_func=l_decay,
+                      originals=cities[:, 1:],
+                      display_interval=10)
+
+            result = som.run()
+            Utilities.store_tsm_result(case=city_number,
+                                       epochs=n_epochs,
+                                       nodes=node_factor,
+                                       l_rate=l_rate,
+                                       radius=radius_divisor,
+                                       l_decay=l_decay,
+                                       r_decay=r_decay,
+                                       result=result)
+        #Utilities.make_gif(mnist=False)
 
 
 if __name__ == "__main__":

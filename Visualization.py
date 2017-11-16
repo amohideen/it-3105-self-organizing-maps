@@ -36,7 +36,7 @@ class TSMVisualizer:
         # Solution Line
         self.solution_line = plt.plot([], [], "k", linewidth=2)[0]
 
-        plt.show()
+        #plt.show()
 
     def update_weights(self, weights: tensor):
         xs = weights[:, :, 0][0]
