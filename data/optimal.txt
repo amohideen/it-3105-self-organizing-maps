@@ -1,8 +1,9 @@
+                                    CASE    EPOCHS  NODES   L_RATE      RAD     L_DECAY     R_DECAY     RESULT
 1: 7542     x 8191.52       Must have 8296.2
 2: 6110     x 6441.80       Must have 6721
 3: 629      x 670.47        Must have 691.9
 4: 22068    - 26940.14      Must have 24274.8
-5: 14379    - 16437.12      Must have 15816.9
-6: 108159                   Must have 118974.9
-7: 59030                    Must have 64933
+5: 14379    Must have 15816.9 - 16437.12
+6: 108159   Must have 118974.9
+7: 59030    Must have 64933         7		400		6		0.30		2		power		power		60649.29
 8: 1211     - 1563.61       Must have 1332.1
