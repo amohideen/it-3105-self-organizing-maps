@@ -19,6 +19,12 @@ tensor = np.array
 Tensor = np.ndarray
 NoOp = None
 
+'''
+General SOM class
+
+Display functions are turned off when display_interval is set to -1
+
+'''
 
 class SOM:
 
@@ -36,7 +42,7 @@ class SOM:
                  test_features: Union[Tensor, None]=None,
                  test_labels: Union[Tensor, None]=None,
                  originals: Union[Tensor, None]=None,
-                 display_interval: int=10):
+                 display_interval: int=-1):
         self.mnist = mnist
         self.features = features
         self.labels = labels
@@ -46,6 +52,7 @@ class SOM:
         self.n_output_rows = n_output_rows
         self.n_output_cols = n_output_cols
         self.display_interval = display_interval
+        self.should_display = display_interval != -1
         self.initial_radius = initial_radius
         self.initial_l_rate = initial_l_rate
         self.originals = originals
@@ -63,7 +70,7 @@ class SOM:
                                          np.max(features),
                                          size=(self.n_output_rows, self.n_output_cols, self.feature_len))
 
-        if not mnist:
+        if self.should_display and not mnist:
             self.tsm_visualizer = TSMVisualizer(self.features, self.weights)
 
     def create_tsm_solution(self, epoch: int):
@@ -80,7 +87,8 @@ class SOM:
         for i in range(len(solution) - 1):
             total += Utilities.euclidian_distance(solution[i], solution[i + 1])
         total += Utilities.euclidian_distance(solution[-1], solution[0])
-        self.tsm_visualizer.update_solution(tensor(normalized_solution), total, epoch)
+        if self.should_display:
+            self.tsm_visualizer.update_solution(tensor(normalized_solution), total, epoch)
         return total
 
     def generate_neighbour_coordinates(self,
@@ -168,7 +176,7 @@ class SOM:
                 counter += 1
                 Utilities.print_progress(n_cases_to_run, counter, i, radius, l_rate) if j % 10 == 0 else NoOp
 
-            if Utilities.time_to_visualize(i, self.display_interval, self.n_epochs):
+            if self.should_display and Utilities.time_to_visualize(i, self.display_interval, self.n_epochs):
                 if self.mnist:
                     reduced_memory = Utilities.reduce_memory(memory)
                     plot_mnist_color(reduced_memory, i)
@@ -182,7 +190,8 @@ class SOM:
             self.test(memory, self.weights, True)
             self.test(memory, self.weights, False)
         else:
-            self.tsm_visualizer.update_weights(self.weights)
+            if self.should_display:
+                self.tsm_visualizer.update_weights(self.weights)
             return self.create_tsm_solution(self.n_epochs - 1)
 
 
@@ -217,7 +226,7 @@ def main(mnist: bool, city_number: int=1):
         # TSM Hyper Params
         node_factor = 6
         radius_divisor = 2
-        n_epochs = 500
+        n_epochs = 1
         l_rate = 0.3
         r_decay = "power"
         l_decay = "power"
@@ -235,7 +244,7 @@ def main(mnist: bool, city_number: int=1):
                   radius_decay_func=r_decay,
                   l_rate_decay_func=l_decay,
                   originals=cities[:, 1:],
-                  display_interval=10)
+                  display_interval=-1)
 
         result = som.run()
         Utilities.store_tsm_result(case=city_number,
@@ -253,6 +262,6 @@ if __name__ == "__main__":
     # cProfile.run("main(False, 1)")
     # cProfile.run("main(True)")
     # main(True)
-    main(False, 8)
+    cProfile.run("main(False, 8)")
 
 
