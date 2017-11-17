@@ -17,5 +17,5 @@ class Decay:
         return 0.005 ** (t / epochs)
 
     @staticmethod
-    def slow_linear_decay(t: float) -> float:
-        return 0.999**t
+    def cur(t: float) -> float:
+        return 0.99**t

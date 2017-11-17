@@ -5,6 +5,8 @@ from Utilities import Utilities
 from SOM import SOM
 import cProfile
 import random
+import sys
+import numpy as np
 import threading
 
 NoOp = None
@@ -22,8 +24,8 @@ def run_mnist(n_train: int=4000, n_test: int=100, visualize: bool=True, profile:
               n_epochs=5,
               initial_radius=5,
               initial_l_rate=0.7,
-              radius_decay_func="power",
-              l_rate_decay_func="power",
+              radius_decay_func="pow",
+              l_rate_decay_func="pow",
               n_output_cols=20,
               n_output_rows=20,
               display_interval=1 if visualize else -1)
@@ -44,16 +46,17 @@ def run_mnist(n_train: int=4000, n_test: int=100, visualize: bool=True, profile:
 def run_tsm(city: int, visualize: bool=True, profile: bool = False):
     Utilities.delete_previous_output("tsm_images")
     cities = DataReader.read_tsm_file(city)
-    norm_cities = Utilities.normalize_coordinates(cities)
+
+    norm_cities = cities # Utilities.normalize_coordinates(cities)
     features = norm_cities[:, 1:]
 
     # TSM Hyper Params
-    node_factor = 6
-    radius_divisor = 2
-    n_epochs = 5
-    l_rate = 0.3
-    r_decay = "power"
-    l_decay = "power"
+    node_factor = 3
+    radius_divisor = 1
+    n_epochs = 400
+    l_rate = 0.39
+    l_decay = "cur"
+    r_decay = "pow"
 
     out_size = len(features) * node_factor
     init_rad = int(out_size / radius_divisor)
@@ -93,15 +96,15 @@ def run_tsm(city: int, visualize: bool=True, profile: bool = False):
 
 def random_search_tsm(city: int):
     cities = DataReader.read_tsm_file(city)
-    norm_cities = Utilities.normalize_coordinates(cities)
+    norm_cities = cities #Utilities.normalize_coordinates(cities)
     features = norm_cities[:, 1:]
 
     while True:
-        node_factor = random.randint(2, 10)
-        radius_divisor = random.uniform(1, 3)
+        node_factor = random.randint(1, 10)
+        radius_divisor = random.uniform(1, 5)
         n_epochs = 400
         l_rate = random.random()
-        funcs = ["exp","power","linear"]
+        funcs = ["exp", "exp", "pow", "lin", "cur"]
         r_decay = random.choice(funcs)
         l_decay = random.choice(funcs)
 
@@ -130,20 +133,25 @@ def random_search_tsm(city: int):
                                    result=som.run())
 
 
-def random_search_multithread(city: int, threads: int):
-    for i in range(threads):
-        t = threading.Thread(target=random_search_tsm, args=(city, ))
-        t.start()
-
-
-def main(mnist: bool, profile: bool=False):
-    if mnist:
-        run_mnist(profile=profile)
-    else:
-        # run_tsm(city=8, visualize=False, profile=profile)
-        random_search_multithread(8, 3)
+def main():
+    # noinspection PyBroadException
+    try:
+        mnist = "mnist" in sys.argv
+        vis = "-v" in sys.argv
+        profile = "-p" in sys.argv
+        if mnist:
+            run_mnist(profile=profile, visualize=vis)
+        else:
+            run_tsm(int(sys.argv[1]))
+    except Exception:
+        print("\nError Launching Application. Usage:")
+        print("\t'python3 Main.py mnist' to run mnist")
+        print("\t'python3 Main.py 1...8' to run the specified tsp city")
+        print("Supported flags:")
+        print("\t '-v' to enable visualization")
+        print("\t '-p' to enable profiling")
 
 
 if __name__ == "__main__":
+    main()
 
-    main(mnist=False, profile=True)

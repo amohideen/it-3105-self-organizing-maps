@@ -31,7 +31,7 @@ class TSMVisualizer:
 
         # Plot weights
         x_weights, y_weights = self._weights_to_coordinates(weights)
-        self.weight_line = plt.plot(x_weights, y_weights, ":b")[0]
+        self.weight_line = plt.plot([], [], ":b")[0]
 
         # Solution Line
         self.solution_line = plt.plot([], [], "k", linewidth=2)[0]

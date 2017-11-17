@@ -84,14 +84,14 @@ class Utilities:
 
     @staticmethod
     def create_decay_function(name: str, epochs: int, time_const: float) -> Callable:
-        if name == "linear":
+        if name == "lin":
             return Decay.linear_decay
         elif name == "exp":
             return partial(Decay.exp_decay, time_const=time_const)
-        elif name == "power":
+        elif name == "pow":
             return partial(Decay.power_series, epochs=epochs)
-        elif name == "slinear":
-            return Decay.slow_linear_decay
+        elif name == "cur":
+            return Decay.cur
         else:
             assert False, "Invalid radius decay function"
 
@@ -131,13 +131,15 @@ class Utilities:
     def print_progress(total: int, i: int, epoch: int, radius: int, l_rate: float):
         percentage = int((i / total) * 100)
         if percentage < 25:
-            color = "red"
+            color = "on_red"
         elif 25 <= percentage < 75:
-            color = "yellow"
+            color = "on_yellow"
         else:
-            color = "green"
-        progress_bar = "[%s>%s]" % (("=" * percentage), (" " * (100 - percentage)))
-        progress_bar = colored(progress_bar, color)
+            color = "on_green"
+        bar = colored(" " * percentage, "grey", color)
+        bar = bar + colored(" ", "grey", color, attrs=["blink"])
+        spaces = " " * (100 - percentage)
+        progress_bar = colored(" ", "grey", "on_white") + bar + spaces + colored(" ", "grey", "on_white")
         print("\r%s %3d%% \t Epoch: %d \t L_Rate: %.3f \t Radius: %d" %
               (progress_bar, percentage, epoch, l_rate, radius),
               end="",

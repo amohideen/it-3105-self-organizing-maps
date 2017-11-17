@@ -137,6 +137,8 @@ class SOM:
         counter = 0
 
         memory = None
+        radius = None
+        l_rate = None
 
         print("\nStarting Training Session\n")
 
@@ -177,9 +179,9 @@ class SOM:
                     reduced_memory = Utilities.reduce_memory(memory)
                     plot_mnist_color(reduced_memory, i)
                 else:
-                    self.tsm_visualizer.update_weights(self.weights)
                     self.create_tsm_solution(i)
-
+                    self.tsm_visualizer.update_weights(self.weights)
+        Utilities.print_progress(1, 1, self.n_epochs-1, radius, l_rate)
         print("\n\nDone Training\n")
 
         if self.mnist:
