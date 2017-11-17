@@ -20,7 +20,7 @@ class Utilities:
         for row in range(len(cities)):
             for col in range(1, len(cities[row])):
                 cities[row][col] = (cities[row][col] - means[col]) / stds[col]
-        return means, stds, cities
+        return cities
 
     @staticmethod
     def normalize_coordinates_old(cities: tensor) -> tensor:
@@ -36,7 +36,7 @@ class Utilities:
     @staticmethod
     def euclidian_distance(v1: tensor, v2: tensor) -> float:
         assert len(v1) == len(v2), "Tensors must be of equal length to compute distance"
-        return np.sqrt(np.sum(np.square(v1-v2)))
+        return np.linalg.norm(v1-v2)
 
     @staticmethod
     def ring_distance(p1: Tuple, p2: Tuple, size: int):

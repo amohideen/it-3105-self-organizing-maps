@@ -5,14 +5,9 @@ import numpy as np
 from typing import Tuple, List, Union
 from Utilities import Utilities
 from Visualization import plot_mnist_color, TSMVisualizer
-from DataReader import DataReader
 from collections import defaultdict
 import math
-from functools import partial
-from Decay import Decay
-import cProfile
 np.random.seed(123)
-from pprint import pprint
 np.set_printoptions(suppress=True)
 
 tensor = np.array
@@ -25,6 +20,7 @@ General SOM class
 Display functions are turned off when display_interval is set to -1
 
 '''
+
 
 class SOM:
 
@@ -193,75 +189,3 @@ class SOM:
             if self.should_display:
                 self.tsm_visualizer.update_weights(self.weights)
             return self.create_tsm_solution(self.n_epochs - 1)
-
-
-def main(mnist: bool, city_number: int=1):
-    if mnist:
-        Utilities.delete_previous_output("mnist_images")
-        mnist_features, mnist_labels, mnist_test_features, mnist_test_labels = DataReader.load_mnist(train_limit=4000,
-                                                                                                     test_limit=100)
-        som = SOM(mnist=True,
-                  features=mnist_features,
-                  labels=mnist_labels,
-                  test_features=mnist_test_features,
-                  test_labels=mnist_test_labels,
-                  n_epochs=5,
-                  initial_radius=5,
-                  initial_l_rate=0.7,
-                  radius_decay_func="power",
-                  l_rate_decay_func="power",
-                  n_output_cols=20,
-                  n_output_rows=20,
-                  display_interval=1)
-        som.run()
-
-        Utilities.make_gif(mnist=True)
-
-    else:
-        Utilities.delete_previous_output("tsm_images")
-        cities = DataReader.read_tsm_file(city_number)
-        means, stds, norm_cities = Utilities.normalize_coordinates(cities)
-        features = norm_cities[:, 1:]
-
-        # TSM Hyper Params
-        node_factor = 6
-        radius_divisor = 2
-        n_epochs = 1
-        l_rate = 0.3
-        r_decay = "power"
-        l_decay = "power"
-
-        out_size = len(features) * node_factor
-        init_rad = int(out_size / radius_divisor)
-
-        som = SOM(mnist=False,
-                  features=features,
-                  n_epochs=n_epochs,
-                  n_output_rows=1,
-                  n_output_cols=out_size,
-                  initial_radius=init_rad,
-                  initial_l_rate=l_rate,
-                  radius_decay_func=r_decay,
-                  l_rate_decay_func=l_decay,
-                  originals=cities[:, 1:],
-                  display_interval=-1)
-
-        result = som.run()
-        Utilities.store_tsm_result(case=city_number,
-                                   epochs=n_epochs,
-                                   nodes=node_factor,
-                                   l_rate=l_rate,
-                                   radius=radius_divisor,
-                                   l_decay=l_decay,
-                                   r_decay=r_decay,
-                                   result=result)
-        Utilities.make_gif(mnist=False)
-
-
-if __name__ == "__main__":
-    # cProfile.run("main(False, 1)")
-    # cProfile.run("main(True)")
-    # main(True)
-    cProfile.run("main(False, 8)")
-
-
