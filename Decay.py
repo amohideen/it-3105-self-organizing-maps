@@ -15,3 +15,7 @@ class Decay:
     @staticmethod
     def power_series(t: float, epochs: int) -> float:
         return 0.005 ** (t / epochs)
+
+    @staticmethod
+    def slow_linear_decay(t: float) -> float:
+        return 0.999**t

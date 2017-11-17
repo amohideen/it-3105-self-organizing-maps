@@ -90,6 +90,8 @@ class Utilities:
             return partial(Decay.exp_decay, time_const=time_const)
         elif name == "power":
             return partial(Decay.power_series, epochs=epochs)
+        elif name == "slinear":
+            return Decay.slow_linear_decay
         else:
             assert False, "Invalid radius decay function"
 
