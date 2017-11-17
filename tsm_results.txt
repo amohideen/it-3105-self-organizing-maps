@@ -1,2 +1,2 @@
 CASE    EPOCHS  NODES   L_RATE      RAD     L_DECAY     R_DECAY     RESULT
-8		500		6		0.30		2		power		power		1563.61
+8		400		3		0.51		1		exp 		linear		1512.53
