@@ -142,7 +142,7 @@ def main():
         if mnist:
             run_mnist(profile=profile, visualize=vis)
         else:
-            run_tsm(int(sys.argv[1]))
+            run_tsm(int(sys.argv[1]), visualize=vis, profile=profile)
     except Exception:
         print("\nError Launching Application. Usage:")
         print("\t'python3 Main.py mnist' to run mnist")

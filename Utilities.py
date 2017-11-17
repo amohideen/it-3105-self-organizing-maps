@@ -140,7 +140,7 @@ class Utilities:
         bar = bar + colored(" ", "grey", color, attrs=["blink"])
         spaces = " " * (100 - percentage)
         progress_bar = colored(" ", "grey", "on_white") + bar + spaces + colored(" ", "grey", "on_white")
-        print("\r%s %3d%% \t Epoch: %d \t L_Rate: %.3f \t Radius: %d" %
+        print("\r%s %3d%% \t Epoch: %d \t L_Rate: %.3f \t Radius: %3d" %
               (progress_bar, percentage, epoch, l_rate, radius),
               end="",
               flush=True)

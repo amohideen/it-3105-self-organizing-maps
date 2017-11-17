@@ -7,7 +7,7 @@ from Utilities import Utilities
 from Visualization import plot_mnist_color, TSMVisualizer
 from collections import defaultdict
 import math
-np.random.seed(123)
+# np.random.seed(123)
 np.set_printoptions(suppress=True)
 
 tensor = np.array
@@ -182,7 +182,7 @@ class SOM:
                     self.create_tsm_solution(i)
                     self.tsm_visualizer.update_weights(self.weights)
         Utilities.print_progress(1, 1, self.n_epochs-1, radius, l_rate)
-        print("\n\nDone Training\n")
+        print("\n\nDone Training")
 
         if self.mnist:
             self.test(memory, self.weights, True)
@@ -190,4 +190,6 @@ class SOM:
         else:
             if self.should_display:
                 self.tsm_visualizer.update_weights(self.weights)
-            return self.create_tsm_solution(self.n_epochs - 1)
+            total = self.create_tsm_solution(self.n_epochs - 1)
+            print("\nLength of best route: %.2f" % total)
+            return total
