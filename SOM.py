@@ -224,9 +224,9 @@ def main(mnist: bool, city_number: int=1):
             n_epochs = random.randint(100, 1000)
             l_rate = random.random()
 
-            funcs = ["exp","power"]
-            r_decay = funcs[random.randint(0,1)]
-            l_decay = funcs[random.randint(0,1)]
+            funcs = ["exp","power","linear"]
+            r_decay = funcs[random.randint(0,2)]
+            l_decay = funcs[random.randint(0,2)]
 
             out_size = len(features) * node_factor
             init_rad = int(out_size / radius_divisor)
