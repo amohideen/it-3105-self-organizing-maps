@@ -55,16 +55,28 @@ def run_tsm(city: int, visualize: bool=True, profile: bool = False, n_epochs: in
                                r_decay=r_decay,
                                result=result)
     Utilities.make_gif(mnist=False) if visualize else NoOp
+    return result
+
+def test_many(n_epochs: int, l_rate: float):
+    required = [7541, 6110, 629, 22068, 14379, 108159, 59030, 1211]
+    for i in range(0, 8):
+        res = run_tsm(i+1, False, n_epochs=n_epochs, l_rate=l_rate)
+        assert res < 1.1 * required[i], "City %d failed. Result: %f" % (i+1, res)
+    print("All cities solved")
 
 
 @click.command()
 @click.option("--visualize", default=True, type=click.BOOL, help="Create visualizations when running")
 @click.option("--epochs", default=400, help="Number of epochs to run")
-@click.option("--city", prompt="City Number", type=click.INT, help="The city to run")
+@click.option("--city", default=1, type=click.INT, help="The city to run")
 @click.option("--lrate", default=0.39, help="Learning rate")
-def tsm(visualize, epochs, city, lrate):
+@click.option("--testmany", is_flag=True, help="Run many tests")
+def tsm(visualize, epochs, city, lrate, testmany):
     click.echo("Running TSM")
-    run_tsm(city, visualize, n_epochs=epochs, l_rate=lrate)
+    if testmany:
+        test_many(epochs, lrate)
+    else:
+        run_tsm(city, visualize, n_epochs=epochs, l_rate=lrate)
 
 
 if __name__ == "__main__":

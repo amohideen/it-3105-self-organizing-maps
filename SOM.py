@@ -126,10 +126,10 @@ class SOM:
             row, col = Utilities.get_winning_neuron_2d(case, weights)
             correct = labels[i] == reduced_memory[row][col]
             predictions.append(correct)
-            if not correct and not train:
-                print("%d -------> %d" % (labels[i], reduced_memory[row][col]))
+            Utilities.print_progress(len(features), i)
         accuracy = sum(predictions) / len(predictions)
-        print("Accuracy: %f%%" % (accuracy * 100))
+        Utilities.print_progress(1,1)
+        print("\nAccuracy: %f%%" % (accuracy * 100))
 
     def run(self):
 
@@ -172,7 +172,8 @@ class SOM:
                     memory[row][col].append(self.labels[j])
 
                 counter += 1
-                Utilities.print_progress(n_cases_to_run, counter, i, radius, l_rate) if j % 10 == 0 else NoOp
+                message = "Epoch: %d \t L_Rate: %.3f \t Radius: %3d" % (i, l_rate, radius)
+                Utilities.print_progress(n_cases_to_run, counter, message) if j % 10 == 0 else NoOp
 
             if self.should_display and Utilities.time_to_visualize(i, self.display_interval, self.n_epochs):
                 if self.mnist:
@@ -181,7 +182,8 @@ class SOM:
                 else:
                     self.create_tsm_solution(i)
                     self.tsm_visualizer.update_weights(self.weights)
-        Utilities.print_progress(1, 1, self.n_epochs-1, radius, l_rate)
+        message = "Epoch: %d \t L_Rate: %.3f \t Radius: %3d" % (self.n_epochs-1, l_rate, radius)
+        Utilities.print_progress(1, 1, message)
         print("\n\nDone Training")
 
         if self.mnist:

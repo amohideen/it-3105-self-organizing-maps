@@ -128,7 +128,7 @@ class Utilities:
             os.system("convert -loop 0 -delay 100 *.png out.gif")
 
     @staticmethod
-    def print_progress(total: int, i: int, epoch: int, radius: int, l_rate: float):
+    def print_progress(total: int, i: int, msg: str=""):
         percentage = int((i / total) * 100)
         if percentage < 25:
             color = "on_red"
@@ -140,8 +140,8 @@ class Utilities:
         bar = bar + colored(" ", "grey", color, attrs=["blink"])
         spaces = " " * (100 - percentage)
         progress_bar = colored(" ", "grey", "on_white") + bar + spaces + colored(" ", "grey", "on_white")
-        print("\r%s %3d%% \t Epoch: %d \t L_Rate: %.3f \t Radius: %3d" %
-              (progress_bar, percentage, epoch, l_rate, radius),
+        print("\r%s %3d%% \t %s" %
+              (progress_bar, percentage, msg),
               end="",
               flush=True)
 
