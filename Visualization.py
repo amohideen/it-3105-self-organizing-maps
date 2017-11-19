@@ -52,7 +52,7 @@ class TSMVisualizer:
         self.solution_line.set_xdata(np.append(xs, xs[0]))
         self.solution_line.set_ydata(np.append(ys, ys[0]))
         plt.title("Epoch %3d, Distance: %.2f" % (epoch, distance))
-        plt.savefig("tsm_images/%03d.png" % epoch, dpi=150)
+        plt.savefig("tsm_images/%03d.png" % epoch)
         self.fig.canvas.draw()
 
 
@@ -85,7 +85,7 @@ def plot_mnist_color(memory: tensor, epoch: int):
     fig.canvas.set_window_title("Epoch %d" % epoch)
     plt.title("Epoch %d" % epoch)
 
-    cmap = colormap.get_cmap("jet")
+    cmap = colormap.get_cmap("tab10")
     cmap.set_under("w")
 
     plt.pcolormesh(memory, cmap=cmap, vmin=0)
