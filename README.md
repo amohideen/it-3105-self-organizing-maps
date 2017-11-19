@@ -7,7 +7,7 @@ Note: Requires MNIST folder from this link: http://www.idi.ntnu.no/emner/it3105/
 Usage: MNIST.py [OPTIONS]
 
 Options:
-  --visualize BOOLEAN  Create visualizations when running
+  --visualize          Create visualizations when running
   --epochs INTEGER     Number of epochs to run
   --lrate FLOAT        Learning rate
   --trainsize INTEGER  Number of training images
@@ -21,11 +21,10 @@ Options:
 Usage: TSM.py [OPTIONS]
 
 Options:
-  --visualize BOOLEAN  Create visualizations when running
-  --epochs INTEGER     Number of epochs to run
-  --city INTEGER       The city to run
-  --lrate FLOAT        Learning rate
-  --testmany           Run many tests
-  --help               Show this message and exit.
-
+  --visualize       Create visualizations when running
+  --epochs INTEGER  Number of epochs to run
+  --city INTEGER    The city to run
+  --lrate FLOAT     Learning rate
+  --testmany        Run many tests
+  --help            Show this message and exit.
 ```
