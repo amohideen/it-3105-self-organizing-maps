@@ -66,7 +66,7 @@ def test_many(n_epochs: int, l_rate: float):
 
 
 @click.command()
-@click.option("--visualize", default=True, type=click.BOOL, help="Create visualizations when running")
+@click.option("--visualize", is_flag=True, help="Create visualizations when running")
 @click.option("--epochs", default=400, help="Number of epochs to run")
 @click.option("--city", default=1, type=click.INT, help="The city to run")
 @click.option("--lrate", default=0.39, help="Learning rate")

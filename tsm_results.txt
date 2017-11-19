@@ -7,3 +7,4 @@ CASE    EPOCHS  NODES   L_RATE      RAD     L_DECAY     R_DECAY     RESULT
 6		400		3		0.39		1		cur		pow		114411.10
 7		400		3		0.39		1		cur		pow		60617.60
 8		400		3		0.39		1		cur		pow		1269.77
+5		400		3		0.39		1		cur		pow		14954.89

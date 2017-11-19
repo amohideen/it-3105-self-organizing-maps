@@ -40,12 +40,12 @@ def run_mnist(n_train: int=4000,
     if profile:
         pr.disable()
         pr.print_stats(sort='time')
-
-    Utilities.make_gif(mnist=True)
+    if visualize:
+        Utilities.make_gif(mnist=True)
 
 
 @click.command()
-@click.option("--visualize", default=True, type=click.BOOL, help="Create visualizations when running")
+@click.option("--visualize", is_flag=True, help="Create visualizations when running")
 @click.option("--epochs", default=5, help="Number of epochs to run")
 @click.option("--lrate", default=0.7, help="Learning rate")
 @click.option("--trainsize", default=4000, help="Number of training images")
